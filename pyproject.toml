@@ -8,3 +8,17 @@ dependencies = [
   "kubernetes>=28.0.0",
   "requests>=2.31.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "responses>=0.26.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-v", "--tb=short"]
+
+[tool.coverage.run]
+source = ["."]
