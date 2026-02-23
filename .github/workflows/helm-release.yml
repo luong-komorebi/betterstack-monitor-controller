@@ -1,0 +1,49 @@
+name: Helm Release
+
+# Publishes the Helm chart to the repo's GitHub Pages Helm repository
+# (https://luong-komorebi.github.io/betterstack-monitor-controller) whenever
+# Chart.yaml version is bumped on main.
+#
+# Prerequisites (one-time setup):
+#   1. Create a gh-pages branch:
+#        git checkout --orphan gh-pages && git rm -rf . && git commit --allow-empty -m "init gh-pages" && git push origin gh-pages
+#   2. Enable GitHub Pages on the repo (Settings → Pages → Branch: gh-pages / root).
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "helm/**"
+
+jobs:
+  release:
+    name: Chart release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to push to gh-pages and create GitHub Releases
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # chart-releaser needs full history to diff tags
+
+      - name: Configure Git
+        run: |
+          git config user.name  "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      # chart-releaser (cr) packages each chart whose version hasn't been
+      # released yet, creates a GitHub Release for it, and updates the Helm
+      # repo index on the gh-pages branch.
+      # chart-releaser (cr) packages each chart whose version hasn't been
+      # released yet, creates a GitHub Release for it, and updates the Helm
+      # repo index on the gh-pages branch.
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: helm
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

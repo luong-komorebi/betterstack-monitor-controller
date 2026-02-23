@@ -59,7 +59,29 @@ spec:
 ### Helm (recommended)
 
 ```bash
-# Install into the monitoring namespace (creates the namespace if needed)
+# Add the Helm repository (served via GitHub Pages)
+helm repo add betterstack-monitor https://luong-komorebi.github.io/betterstack-monitor-controller
+helm repo update
+
+# Install
+helm upgrade --install betterstack-monitor \
+  betterstack-monitor/betterstack-monitor-controller \
+  --namespace monitoring \
+  --create-namespace \
+  --set apiToken=<YOUR_TOKEN>
+
+# Pin a specific chart/app version
+helm upgrade --install betterstack-monitor \
+  betterstack-monitor/betterstack-monitor-controller \
+  --namespace monitoring \
+  --create-namespace \
+  --set apiToken=<YOUR_TOKEN> \
+  --version 0.1.0
+```
+
+Or install directly from the local chart:
+
+```bash
 helm upgrade --install betterstack-monitor \
   ./helm/betterstack-monitor-controller \
   --namespace monitoring \
@@ -122,6 +144,8 @@ GitHub Actions runs on every push and pull request to `main`:
 
 - **Test** — pytest across Python 3.11 and 3.12, with Codecov coverage upload
 - **Docker** — builds and pushes to `ghcr.io/luong-komorebi/betterstack-monitor-controller` on pushes to `main` and version tags (`v*.*.*`)
+- **Helm lint** — runs `helm lint` on every change to `helm/**`
+- **Helm Release** — packages and publishes the chart to the GitHub Pages Helm repo whenever `Chart.yaml` version is bumped on `main`
 
 The Docker image is published automatically; no extra secrets are needed beyond the default `GITHUB_TOKEN`.
 
@@ -132,13 +156,24 @@ This project follows **Semantic Versioning** (`MAJOR.MINOR.PATCH`) and derives t
 - Tag format: `vX.Y.Z` (example: `v1.2.3`)
 - Source of truth: Git tags (no manual version bump in `pyproject.toml`)
 - Docker tags: generated automatically from release tags by CI
+- Helm chart version (`Chart.yaml` → `version`): bumped independently from the app version when chart templates or values change
 
 ### Release flow
+
+#### Application release (Docker image)
 
 1. Merge changes to `main`.
 2. Create a version tag (`vX.Y.Z`, for example `v1.2.3`).
 3. Push the tag to GitHub.
 4. CI builds and publishes a matching container image tag.
+
+#### Helm chart release
+
+1. Update `helm/betterstack-monitor-controller/Chart.yaml` — bump `version` (chart changes) and/or `appVersion` (app version the chart installs by default).
+2. Merge to `main`.
+3. The **Helm Release** workflow publishes the new chart version to the GitHub Pages Helm repo automatically.
+
+> The `gh-pages` branch must exist and GitHub Pages must be enabled (Settings → Pages → Branch: `gh-pages`) before the first chart release.
 
 ## License
 
