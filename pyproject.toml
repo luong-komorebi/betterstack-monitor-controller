@@ -1,6 +1,10 @@
+[build-system]
+requires = ["hatchling>=1.26.3", "hatch-vcs>=0.4.0"]
+build-backend = "hatchling.build"
+
 [project]
 name = "betterstack-monitor-controller"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Kubernetes controller that auto-manages BetterStack uptime monitors from Ingress annotations"
 requires-python = ">=3.11"
 dependencies = [
@@ -22,3 +26,9 @@ addopts = ["-v", "--tb=short"]
 
 [tool.coverage.run]
 source = ["."]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"

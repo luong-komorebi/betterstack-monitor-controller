@@ -4,8 +4,20 @@ on:
   push:
     branches: ["main"]
     tags: ["v*.*.*"]
+    paths:
+      - "**.py"
+      - "Dockerfile"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - "**.py"
+      - "Dockerfile"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/ci.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

@@ -10,7 +10,7 @@ A lightweight Kubernetes controller that automatically manages [BetterStack Upti
 The controller uses [kopf](https://kopf.readthedocs.io/) to watch `networking.k8s.io/v1` Ingress events. When an Ingress carries the `betterstack.io/monitor: "true"` annotation the controller reconciles BetterStack monitors for every hostname defined in `spec.rules`.
 
 | Event | Action |
-|-------|--------|
+| ----- | ------ |
 | Ingress created | Creates one monitor per host |
 | Ingress updated | Updates existing monitors; removes monitors for deleted hosts |
 | Ingress deleted | Deletes all monitors associated with the Ingress |
@@ -20,7 +20,7 @@ Monitor IDs are persisted back to the Ingress as `betterstack.io/monitor-ids` (a
 ## Annotations
 
 | Annotation | Required | Default | Description |
-|------------|----------|---------|-------------|
+| ---------- | -------- | ------- | ----------- |
 | `betterstack.io/monitor` | Yes | — | Set to `"true"` to enable monitoring |
 | `betterstack.io/path` | No | `/api/health` | HTTP path checked by the monitor |
 | `betterstack.io/monitor-ids` | Auto-managed | `{}` | JSON map of host → monitor ID written back by the controller |
@@ -95,6 +95,21 @@ GitHub Actions runs on every push and pull request to `main`:
 - **Docker** — builds and pushes to `ghcr.io/luong-komorebi/betterstack-monitor-controller` on pushes to `main` and version tags (`v*.*.*`)
 
 The Docker image is published automatically; no extra secrets are needed beyond the default `GITHUB_TOKEN`.
+
+## Versioning
+
+This project follows **Semantic Versioning** (`MAJOR.MINOR.PATCH`) and derives the package version from Git tags.
+
+- Tag format: `vX.Y.Z` (example: `v1.2.3`)
+- Source of truth: Git tags (no manual version bump in `pyproject.toml`)
+- Docker tags: generated automatically from release tags by CI
+
+### Release flow
+
+1. Merge changes to `main`.
+2. Create a version tag (`vX.Y.Z`, for example `v1.2.3`).
+3. Push the tag to GitHub.
+4. CI builds and publishes a matching container image tag.
 
 ## License
 

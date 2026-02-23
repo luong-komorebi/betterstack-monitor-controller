@@ -141,8 +141,7 @@ wheels = [
 
 [[package]]
 name = "betterstack-monitor-controller"
-version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "kopf" },
     { name = "kubernetes" },
