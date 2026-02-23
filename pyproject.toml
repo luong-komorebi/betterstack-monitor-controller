@@ -1,0 +1,10 @@
+[project]
+name = "betterstack-monitor-controller"
+version = "0.1.0"
+description = "Kubernetes controller that auto-manages BetterStack uptime monitors from Ingress annotations"
+requires-python = ">=3.11"
+dependencies = [
+  "kopf>=1.37.0",
+  "kubernetes>=28.0.0",
+  "requests>=2.31.0",
+]
