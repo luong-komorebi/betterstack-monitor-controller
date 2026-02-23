@@ -1,0 +1,27 @@
+apiVersion: v1
+entries:
+  betterstack-monitor-controller:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-02-23T04:39:51.417795334Z"
+    description: Kubernetes controller that auto-manages BetterStack uptime monitors
+      from Ingress annotations
+    digest: b3508a8c89f39851b6d8737ff48783b4f1b6186541adcc715a8072c0eb3b04be
+    home: https://github.com/luong-komorebi/betterstack-monitor-controller
+    keywords:
+    - betterstack
+    - uptime
+    - monitoring
+    - ingress
+    - controller
+    maintainers:
+    - name: luong-komorebi
+      url: https://github.com/luong-komorebi
+    name: betterstack-monitor-controller
+    sources:
+    - https://github.com/luong-komorebi/betterstack-monitor-controller
+    type: application
+    urls:
+    - https://github.com/luong-komorebi/betterstack-monitor-controller/releases/download/betterstack-monitor-controller-0.1.0/betterstack-monitor-controller-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-02-23T04:39:51.417802487Z"
