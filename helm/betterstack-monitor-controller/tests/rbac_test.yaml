@@ -1,0 +1,100 @@
+suite: rbac
+templates:
+  - clusterrole.yaml
+  - clusterrolebinding.yaml
+
+tests:
+  # ── ClusterRole ──────────────────────────────────────────────────────────────
+  - it: renders a ClusterRole by default
+    template: clusterrole.yaml
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - isAPIVersion:
+          of: rbac.authorization.k8s.io/v1
+      - hasDocuments:
+          count: 1
+
+  - it: ClusterRole grants required Ingress permissions
+    template: clusterrole.yaml
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["networking.k8s.io"]
+            resources: ["ingresses"]
+            verbs: ["get", "list", "watch", "patch"]
+
+  - it: ClusterRole grants Lease permissions (leader election)
+    template: clusterrole.yaml
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["coordination.k8s.io"]
+            resources: ["leases"]
+            verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+  - it: ClusterRole grants Event create permission
+    template: clusterrole.yaml
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create"]
+
+  - it: does not render ClusterRole when rbac.create is false
+    template: clusterrole.yaml
+    set:
+      rbac.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  # ── ClusterRoleBinding ───────────────────────────────────────────────────────
+  - it: renders a ClusterRoleBinding by default
+    template: clusterrolebinding.yaml
+    asserts:
+      - isKind:
+          of: ClusterRoleBinding
+      - hasDocuments:
+          count: 1
+
+  - it: ClusterRoleBinding references the chart ClusterRole
+    template: clusterrolebinding.yaml
+    asserts:
+      - equal:
+          path: roleRef.kind
+          value: ClusterRole
+      - equal:
+          path: roleRef.name
+          value: RELEASE-NAME-betterstack-monitor-controller
+
+  - it: ClusterRoleBinding binds to the release ServiceAccount and namespace
+    template: clusterrolebinding.yaml
+    asserts:
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: RELEASE-NAME-betterstack-monitor-controller
+            namespace: NAMESPACE
+
+  - it: does not render ClusterRoleBinding when rbac.create is false
+    template: clusterrolebinding.yaml
+    set:
+      rbac.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  # ── consistent naming ────────────────────────────────────────────────────────
+  - it: ClusterRole name matches ClusterRoleBinding roleRef
+    set:
+      rbac.create: true
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-betterstack-monitor-controller

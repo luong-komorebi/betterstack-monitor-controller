@@ -1,0 +1,227 @@
+suite: deployment
+templates:
+  - deployment.yaml
+
+tests:
+  # ── defaults ────────────────────────────────────────────────────────────────
+  - it: renders a Deployment with default values
+    asserts:
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: controller
+
+  - it: uses appVersion as image tag when image.tag is empty
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "ghcr.io/luong-komorebi/betterstack-monitor-controller:0\\.1\\.0"
+
+  # ── image overrides ──────────────────────────────────────────────────────────
+  - it: uses image.tag override when set
+    set:
+      image.tag: "1.2.3"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "ghcr.io/luong-komorebi/betterstack-monitor-controller:1.2.3"
+
+  - it: uses custom repository when set
+    set:
+      image.repository: myregistry.io/my-org/betterstack-monitor-controller
+      image.tag: "2.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "myregistry.io/my-org/betterstack-monitor-controller:2.0.0"
+
+  - it: sets imagePullPolicy
+    set:
+      image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  # ── replicas ─────────────────────────────────────────────────────────────────
+  - it: respects custom replicaCount
+    set:
+      replicaCount: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+
+  # ── secret reference ─────────────────────────────────────────────────────────
+  - it: uses chart-managed secret by default (inline apiToken)
+    set:
+      apiToken: "my-token"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: BETTERSTACK_API_TOKEN
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: RELEASE-NAME-betterstack-monitor-controller
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: api-token
+
+  - it: uses existing secret name when set
+    set:
+      existingSecret.name: my-external-secret
+      existingSecret.key: token
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: my-external-secret
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: token
+
+  # ── security contexts ────────────────────────────────────────────────────────
+  - it: sets pod security context
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 65534
+
+  - it: sets container security context
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop
+          content: ALL
+
+  # ── resources ────────────────────────────────────────────────────────────────
+  - it: sets default resource requests and limits
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 10m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 32Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 128Mi
+
+  - it: allows resource override
+    set:
+      resources.requests.memory: 64Mi
+      resources.limits.memory: 256Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 64Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 256Mi
+
+  # ── extraEnv ─────────────────────────────────────────────────────────────────
+  - it: appends extra env vars
+    set:
+      extraEnv:
+        - name: LOG_LEVEL
+          value: debug
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: debug
+
+  # ── serviceAccount wiring ────────────────────────────────────────────────────
+  - it: references the chart serviceaccount by default
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-betterstack-monitor-controller
+
+  - it: uses custom serviceAccount name when serviceAccount.create is false
+    set:
+      serviceAccount.create: false
+      serviceAccount.name: existing-sa
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: existing-sa
+
+  # ── imagePullSecrets ──────────────────────────────────────────────────────────
+  - it: renders imagePullSecrets when set
+    set:
+      imagePullSecrets:
+        - name: regcred
+    asserts:
+      - contains:
+          path: spec.template.spec.imagePullSecrets
+          content:
+            name: regcred
+
+  # ── scheduling ───────────────────────────────────────────────────────────────
+  - it: renders nodeSelector when set
+    set:
+      nodeSelector:
+        kubernetes.io/os: linux
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector["kubernetes.io/os"]
+          value: linux
+
+  - it: renders tolerations when set
+    set:
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: monitoring
+          effect: NoSchedule
+    asserts:
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: dedicated
+            operator: Equal
+            value: monitoring
+            effect: NoSchedule
+
+  # ── pod labels / annotations ─────────────────────────────────────────────────
+  - it: merges custom podLabels
+    set:
+      podLabels:
+        team: platform
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["team"]
+          value: platform
+
+  - it: adds podAnnotations
+    set:
+      podAnnotations:
+        prometheus.io/scrape: "false"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "false"
+
+  # ── labels ───────────────────────────────────────────────────────────────────
+  - it: includes standard Helm labels
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - isNotEmpty:
+          path: metadata.labels["helm.sh/chart"]

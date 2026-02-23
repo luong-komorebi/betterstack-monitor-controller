@@ -128,10 +128,10 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ────────────────────────────────────────────────────────────
-  # Helm chart lint
+  # Helm chart lint + unit tests
   # ────────────────────────────────────────────────────────────
-  helm-lint:
-    name: Helm lint
+  helm-test:
+    name: Helm lint & test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -139,5 +139,18 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest
+
       - name: Lint chart
         run: helm lint helm/betterstack-monitor-controller
+
+      - name: Run unit tests
+        run: helm unittest helm/betterstack-monitor-controller --output-type JUnit --output-file helm-test-results.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: helm-test-results.xml
+          check_name: Helm Unit Tests
