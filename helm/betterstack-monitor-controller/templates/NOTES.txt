@@ -1,0 +1,27 @@
+betterstack-monitor-controller has been deployed.
+
+The controller is now watching all Ingress resources cluster-wide.
+
+To enable monitoring for an Ingress, add these annotations:
+
+  betterstack.io/monitor: "true"
+  betterstack.io/path: "/api/health"   # optional, defaults to /api/health
+
+Example:
+
+  kubectl annotate ingress my-app \
+    betterstack.io/monitor=true \
+    betterstack.io/path=/healthz
+
+The controller will create BetterStack Uptime monitors for each host defined
+in the Ingress spec.rules and write the monitor IDs back to:
+
+  betterstack.io/monitor-ids: '{"my-app.example.com": "123456"}'
+
+To verify the controller is running:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "betterstack-monitor-controller.name" . }}
+
+To view controller logs:
+
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "betterstack-monitor-controller.name" . }} -f

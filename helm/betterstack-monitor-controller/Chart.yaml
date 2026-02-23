@@ -1,0 +1,26 @@
+apiVersion: v2
+name: betterstack-monitor-controller
+description: Kubernetes controller that auto-manages BetterStack uptime monitors from Ingress annotations
+
+type: application
+
+# Chart version — bump when chart templates/values change.
+version: 0.1.0
+
+# appVersion tracks the default Docker image tag used by the chart.
+# Keep in sync with the project release tags (vX.Y.Z).
+appVersion: "0.1.0"
+
+keywords:
+  - betterstack
+  - uptime
+  - monitoring
+  - ingress
+  - controller
+
+home: https://github.com/luong-komorebi/betterstack-monitor-controller
+sources:
+  - https://github.com/luong-komorebi/betterstack-monitor-controller
+maintainers:
+  - name: luong-komorebi
+    url: https://github.com/luong-komorebi

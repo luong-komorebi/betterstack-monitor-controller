@@ -10,6 +10,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/ci.yml"
+      - "helm/**"
   pull_request:
     branches: ["main"]
     paths:
@@ -18,6 +19,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/ci.yml"
+      - "helm/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -73,6 +75,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history so hatch-vcs can derive the version from git tags
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # Regenerate _version.py from the current git tag/commit so the
+      # version baked into the image is always accurate.
+      - name: Generate _version.py
+        run: uv build --wheel --out-dir /tmp/dist
 
       - name: Docker meta
         id: meta
@@ -83,7 +97,11 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
             type=sha,prefix=sha-,format=short
+          labels: |
+            org.opencontainers.image.title=betterstack-monitor-controller
+            org.opencontainers.image.description=Kubernetes controller that auto-manages BetterStack uptime monitors from Ingress annotations
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -102,5 +120,24 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            COMMIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ────────────────────────────────────────────────────────────
+  # Helm chart lint
+  # ────────────────────────────────────────────────────────────
+  helm-lint:
+    name: Helm lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint chart
+        run: helm lint helm/betterstack-monitor-controller

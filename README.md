@@ -56,6 +56,35 @@ spec:
 - Kubernetes ≥ 1.24
 - A [BetterStack API token](https://betterstack.com/docs/uptime/api/getting-started-with-the-uptime-api/) with monitor read/write permissions
 
+### Helm (recommended)
+
+```bash
+# Install into the monitoring namespace (creates the namespace if needed)
+helm upgrade --install betterstack-monitor \
+  ./helm/betterstack-monitor-controller \
+  --namespace monitoring \
+  --create-namespace \
+  --set apiToken=<YOUR_TOKEN>
+
+# Pin a specific image version
+helm upgrade --install betterstack-monitor \
+  ./helm/betterstack-monitor-controller \
+  --namespace monitoring \
+  --create-namespace \
+  --set apiToken=<YOUR_TOKEN> \
+  --set image.tag=1.2.3
+
+# Reference an existing Secret instead of letting the chart create one
+helm upgrade --install betterstack-monitor \
+  ./helm/betterstack-monitor-controller \
+  --namespace monitoring \
+  --create-namespace \
+  --set existingSecret.name=my-betterstack-secret \
+  --set existingSecret.key=api-token
+```
+
+See [`helm/betterstack-monitor-controller/values.yaml`](helm/betterstack-monitor-controller/values.yaml) for all available options.
+
 ### kubectl
 
 ```bash

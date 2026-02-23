@@ -1,0 +1,77 @@
+# Default values for betterstack-monitor-controller.
+# Override any of these in your own values file or with --set.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/luong-komorebi/betterstack-monitor-controller
+  pullPolicy: IfNotPresent
+  # Overrides the image tag; defaults to the chart's .Chart.AppVersion.
+  tag: ""
+
+imagePullSecrets: []
+
+# ─── BetterStack API token ────────────────────────────────────────────────────
+# Provide the API token in ONE of two ways (mutually exclusive):
+#
+#   1. Inline (a Secret is created by this chart):
+#        apiToken: "your-token-here"
+#
+#   2. Reference an existing Secret (the chart creates nothing):
+#        existingSecret:
+#          name: my-betterstack-secret
+#          key: api-token
+#
+apiToken: ""
+
+existingSecret:
+  name: ""
+  key: api-token
+
+# ─── ServiceAccount ───────────────────────────────────────────────────────────
+serviceAccount:
+  create: true
+  # Annotations to add to the service account (e.g. for IRSA / Workload Identity).
+  annotations: {}
+  # Overrides the generated name.
+  name: ""
+
+# ─── RBAC ─────────────────────────────────────────────────────────────────────
+# ClusterRole and ClusterRoleBinding are always cluster-scoped.
+rbac:
+  create: true
+
+# ─── Pod / container security ─────────────────────────────────────────────────
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# ─── Resources ────────────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# ─── Additional pod configuration ─────────────────────────────────────────────
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Extra environment variables injected directly into the container.
+extraEnv: []
+# - name: MY_VAR
+#   value: "my-value"
+
+podAnnotations: {}
+podLabels: {}
