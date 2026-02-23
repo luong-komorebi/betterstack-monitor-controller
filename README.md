@@ -173,7 +173,7 @@ This project follows **Semantic Versioning** (`MAJOR.MINOR.PATCH`) and derives t
 2. Merge to `main`.
 3. The **Helm Release** workflow publishes the new chart version to the GitHub Pages Helm repo automatically.
 
-> The `gh-pages` branch must exist and GitHub Pages must be enabled (Settings → Pages → Branch: `gh-pages`) before the first chart release.
+> The `gh-pages` branch and GitHub Pages are bootstrapped automatically by the workflow on first run.
 
 ## License
 
