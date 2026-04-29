@@ -45,6 +45,16 @@ tests:
             resources: ["events"]
             verbs: ["create"]
 
+  - it: ClusterRole grants Secret get permission (for sensitive field refs)
+    template: clusterrole.yaml
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["secrets"]
+            verbs: ["get"]
+
   - it: does not render ClusterRole when rbac.create is false
     template: clusterrole.yaml
     set:

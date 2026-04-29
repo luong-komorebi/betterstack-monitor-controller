@@ -23,19 +23,15 @@ class BetterstackClient:
         self.session = requests.Session()
         self.session.headers["Authorization"] = f"Bearer {token}"
 
-    def create(self, url, name):
-        resp = self.session.post(
-            f"{BASE_URL}/monitors",
-            json={"url": url, "pronounceable_name": name, **MONITOR_DEFAULTS},
-        )
+    def create(self, url, name, **fields):
+        payload = {**MONITOR_DEFAULTS, **fields, "url": url, "pronounceable_name": name}
+        resp = self.session.post(f"{BASE_URL}/monitors", json=payload)
         resp.raise_for_status()
         return resp.json()["data"]["id"]
 
-    def update(self, monitor_id, url, name):
-        resp = self.session.patch(
-            f"{BASE_URL}/monitors/{monitor_id}",
-            json={"url": url, "pronounceable_name": name},
-        )
+    def update(self, monitor_id, url, name, **fields):
+        payload = {**fields, "url": url, "pronounceable_name": name}
+        resp = self.session.patch(f"{BASE_URL}/monitors/{monitor_id}", json=payload)
         resp.raise_for_status()
 
     def delete(self, monitor_id):
