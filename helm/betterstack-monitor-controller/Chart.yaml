@@ -5,11 +5,11 @@ description: Kubernetes controller that auto-manages BetterStack uptime monitors
 type: application
 
 # Chart version — bump when chart templates/values change.
-version: 0.1.0
+version: 0.2.0
 
 # appVersion tracks the default Docker image tag used by the chart.
 # Keep in sync with the project release tags (vX.Y.Z).
-appVersion: "0.1.0"
+appVersion: "0.2.0"
 
 keywords:
   - betterstack

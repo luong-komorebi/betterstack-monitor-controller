@@ -21,7 +21,7 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.spec.containers[0].image
-          pattern: "ghcr.io/luong-komorebi/betterstack-monitor-controller:0\\.1\\.0"
+          pattern: "ghcr.io/luong-komorebi/betterstack-monitor-controller:0\\.2\\.0"
 
   # ── image overrides ──────────────────────────────────────────────────────────
   - it: uses image.tag override when set
